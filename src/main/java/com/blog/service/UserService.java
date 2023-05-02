@@ -2,10 +2,10 @@ package com.blog.service;
 
 import java.util.List;
 
-import com.blog.dto.UserDto;
+import com.blog.payload.UserDto;
 
 public interface UserService {
-	UserDto createUser(UserDto userdto) throws Exception;
+	UserDto createUser(UserDto userdto);
 	UserDto updateUser(UserDto userdto,Integer userid);
 	List<UserDto> getAllUser();
 	UserDto getUserById(Integer userid);

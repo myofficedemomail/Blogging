@@ -8,9 +8,9 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.blog.dto.UserDto;
 import com.blog.entity.User;
 import com.blog.exception.ResourseNotFoundException;
+import com.blog.payload.UserDto;
 import com.blog.repo.UserRepo;
 import com.blog.service.UserService;
 
@@ -20,9 +20,15 @@ public class UserServiceImpl implements UserService {
 	private UserRepo userrepo;
 
 	@Override
-	public UserDto createUser(UserDto userdto) throws Exception {
+	public UserDto createUser(UserDto userdto){
 		User user = new User();
-		BeanUtils.copyProperties(user, userdto);
+		try {
+			BeanUtils.copyProperties(user, userdto);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
 		userrepo.save(user);
 		return userdto;
 	}
@@ -56,6 +62,7 @@ public class UserServiceImpl implements UserService {
 			userdto.setName(user.getName());
 			userdto.setEmail(user.getEmail());
 			userdto.setAbout(user.getAbout());
+			userdto.setPassword(user.getPassword());
 			listuserdto.add(userdto);
 		});
 		return listuserdto;
