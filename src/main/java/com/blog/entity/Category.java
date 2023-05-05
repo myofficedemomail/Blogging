@@ -18,6 +18,7 @@ public class Category {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer categoryid;
 	private String title;
+	private String description;
 	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "category")
 	private List<Post> post;
 }

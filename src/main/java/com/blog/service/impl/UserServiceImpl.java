@@ -24,12 +24,11 @@ public class UserServiceImpl implements UserService {
 		User user = new User();
 		try {
 			BeanUtils.copyProperties(user, userdto);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+			user=userrepo.save(user);
+			BeanUtils.copyProperties(userdto, user);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		userrepo.save(user);
 		return userdto;
 	}
 
@@ -37,15 +36,13 @@ public class UserServiceImpl implements UserService {
 	public UserDto updateUser(UserDto userdto, Integer userid) {
 		User user = userrepo.findById(userid)
 				.orElseThrow(() -> new ResourseNotFoundException("User", "Id", userid.toString()));
-		user.setAbout(userdto.getAbout());
-		user.setEmail(userdto.getEmail());
-		user.setName(userdto.getName());
-		User updatedUser = userrepo.save(user);
 		try {
+			BeanUtils.copyProperties(user, userdto);
+			user.setUserid(userid);
+			User updatedUser = userrepo.save(user);
+			System.out.println(updatedUser);
 			BeanUtils.copyProperties(userdto, updatedUser);
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return userdto;
