@@ -2,6 +2,7 @@ package com.blog.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,8 +138,7 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public List<PostDto> searchPost(String keyword) {
-		List<Post> allPost = postrepo.findAll().stream()
-				.filter((post) -> post.getContent().contains(keyword) || post.getTitle().contains(keyword)).toList();
+		List<Post> allPost = postrepo.findAll().stream().filter((post) -> post.getContent().contains(keyword) || post.getTitle().contains(keyword)).collect(Collectors.toList());
 		List<PostDto> listPostDto = new ArrayList<>();
 		PostDto postdto = null;
 		for (Post post : allPost) {
