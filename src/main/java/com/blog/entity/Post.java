@@ -1,5 +1,6 @@
 package com.blog.entity;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -22,6 +23,7 @@ public class Post {
 	private String title;
 	private String content;
 	private String image;
+	private Date addedDate;
 	@ManyToOne
 	@JoinColumn(name = "user_fk")
 	private User user;
