@@ -27,7 +27,7 @@ public class Post {
 	@ManyToOne
 	@JoinColumn(name = "user_fk")
 	private User user;
-	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "post")
+	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,mappedBy = "post")
 	private List<Comment> comment;
 	@ManyToOne
 	@JoinColumn(name = "category_fk")

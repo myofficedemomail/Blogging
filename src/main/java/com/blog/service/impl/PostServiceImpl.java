@@ -1,11 +1,14 @@
 package com.blog.service.impl;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.beanutils.BeanUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.blog.entity.Category;
@@ -13,6 +16,7 @@ import com.blog.entity.Post;
 import com.blog.entity.User;
 import com.blog.exception.ResourseNotFoundException;
 import com.blog.payload.PostDto;
+import com.blog.payload.PostResponse;
 import com.blog.repo.CategoryRepo;
 import com.blog.repo.PostRepo;
 import com.blog.repo.UserRepo;
@@ -26,6 +30,8 @@ public class PostServiceImpl implements PostService {
 	private CategoryRepo categoryrepo;
 	@Autowired
 	private PostRepo postrepo;
+	@Autowired
+	private ModelMapper modelMapper;
 
 	@Override
 	public PostDto createPost(PostDto postdto, Integer userid, Integer categoryid) {
@@ -34,15 +40,13 @@ public class PostServiceImpl implements PostService {
 		Category category = categoryrepo.findById(categoryid)
 				.orElseThrow(() -> new ResourseNotFoundException("Category", "Id", categoryid.toString()));
 		Post post = new Post();
-		try {
-			BeanUtils.copyProperties(post, postdto);
-			post.setUser(user);
-			post.setCategory(category);
-			postrepo.save(post);
-			BeanUtils.copyProperties(postdto, post);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		post = modelMapper.map(postdto, Post.class);
+		post.setUser(user);
+		post.setCategory(category);
+		post.setAddedDate(new Date());
+		post.setImage("demo.png");
+		post = postrepo.save(post);
+		postdto = modelMapper.map(post, PostDto.class);
 		return postdto;
 	}
 
@@ -50,14 +54,12 @@ public class PostServiceImpl implements PostService {
 	public PostDto updatePost(PostDto postdto, Integer postid) {
 		Post post = postrepo.findById(postid)
 				.orElseThrow(() -> new ResourseNotFoundException("Post", "Id", postid.toString()));
-		try {
-			BeanUtils.copyProperties(post, postdto);
-			post.setPostid(postid);
-			postrepo.save(post);
-			BeanUtils.copyProperties(postdto, post);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		post.setTitle(postdto.getTitle());
+		post.setContent(postdto.getContent());
+		post.setImage(postdto.getImage());
+		post.setTitle(postdto.getTitle());
+		postrepo.save(post);
+		postdto = modelMapper.map(post, PostDto.class);
 		return postdto;
 	}
 
@@ -69,88 +71,71 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<PostDto> getAllPost() {
-		List<Post> findAllPost = postrepo.findAll();
-		List<PostDto> listPostDto = new ArrayList<>();
-		PostDto postdto = null;
-		for (Post post : findAllPost) {
-			postdto = new PostDto();
-			try {
-				BeanUtils.copyProperties(postdto, post);
-				listPostDto.add(postdto);
-			} catch (Exception e) {
-				continue;
-			}
-		}
-		return listPostDto;
+	public PostResponse getAllPost(Integer pagesize, Integer pageNumber) {
+		Pageable pageable=PageRequest.of(pageNumber, pagesize);
+		Page<Post> postPage=postrepo.findAll(pageable);
+		List<Post> findAllPost = postPage.getContent();
+		List<PostDto> listPostDto =findAllPost.stream().map((post)->{
+			return modelMapper.map(post, PostDto.class);
+		}).collect(Collectors.toList());
+		PostResponse postResponse=new PostResponse();
+		postResponse.setContent(listPostDto);
+		postResponse.setLastPage(postPage.isLast());
+		postResponse.setPageNumber(postPage.getNumber());
+		postResponse.setPageSize(postPage.getSize());
+		postResponse.setTotalElement((int) postPage.getTotalElements());
+		postResponse.setTotalPage(postPage.getTotalPages());
+		return postResponse;
 	}
 
 	@Override
 	public PostDto getPostById(Integer postid) {
 		Post post = postrepo.findById(postid)
 				.orElseThrow(() -> new ResourseNotFoundException("Post", "Id", postid.toString()));
-		PostDto postdto = new PostDto();
-		try {
-			BeanUtils.copyProperties(postdto, post);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		PostDto postdto = modelMapper.map(post, PostDto.class);
 		return postdto;
 	}
 
 	@Override
-	public List<PostDto> getPostByUser(Integer userid) {
+	public PostResponse getPostByUser(Integer userid,Integer pagesize, Integer pageNumber) {
+		Pageable pageable=PageRequest.of(pageNumber, pagesize);
 		User user = userrepo.findById(userid)
 				.orElseThrow(() -> new ResourseNotFoundException("User", "Id", userid.toString()));
-		List<PostDto> listPostDto = new ArrayList<>();
-		List<Post> listPost = user.getPost();
-		PostDto postdto = null;
-		for (Post post : listPost) {
-			postdto = new PostDto();
-			try {
-				BeanUtils.copyProperties(postdto, post);
-				listPostDto.add(postdto);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return listPostDto;
+		Page<Post> postPage = postrepo.findAllByUser(user,pageable);
+		List<PostDto> listPostDto =postPage.getContent().stream().map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		PostResponse postResponse=new PostResponse();
+		postResponse.setContent(listPostDto);
+		postResponse.setLastPage(postPage.isLast());
+		postResponse.setPageNumber(postPage.getNumber());
+		postResponse.setPageSize(postPage.getSize());
+		postResponse.setTotalElement((int) postPage.getTotalElements());
+		postResponse.setTotalPage(postPage.getTotalPages());
+		return postResponse;
 	}
 
 	@Override
-	public List<PostDto> getPostByCategory(Integer categoryid) {
+	public PostResponse getPostByCategory(Integer categoryid,Integer pagesize, Integer pageNumber) {
+		Pageable pageable=PageRequest.of(pageNumber, pagesize);
 		Category category = categoryrepo.findById(categoryid)
 				.orElseThrow(() -> new ResourseNotFoundException("Category", "Id", categoryid.toString()));
-		List<PostDto> listPostDto = new ArrayList<>();
-		List<Post> listPost = category.getPost();
-		PostDto postdto = null;
-		for (Post post : listPost) {
-			postdto = new PostDto();
-			try {
-				BeanUtils.copyProperties(postdto, post);
-				listPostDto.add(postdto);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return listPostDto;
+		Page<Post> postPage = postrepo.findAllByCategory(category,pageable);
+		List<PostDto> listPostDto = postPage.getContent().stream().map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		PostResponse postResponse=new PostResponse();
+		postResponse.setContent(listPostDto);
+		postResponse.setLastPage(postPage.isLast());
+		postResponse.setPageNumber(postPage.getNumber());
+		postResponse.setPageSize(postPage.getSize());
+		postResponse.setTotalElement((int) postPage.getTotalElements());
+		postResponse.setTotalPage(postPage.getTotalPages());
+		return postResponse;
 	}
 
 	@Override
 	public List<PostDto> searchPost(String keyword) {
-		List<Post> allPost = postrepo.findAll().stream().filter((post) -> post.getContent().contains(keyword) || post.getTitle().contains(keyword)).collect(Collectors.toList());
-		List<PostDto> listPostDto = new ArrayList<>();
-		PostDto postdto = null;
-		for (Post post : allPost) {
-			postdto = new PostDto();
-			try {
-				BeanUtils.copyProperties(postdto, post);
-				listPostDto.add(postdto);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return listPostDto;
+		List<PostDto> allPostDto = postrepo.findAll().stream()
+				.filter((post) -> post.getContent().toLowerCase().contains(keyword.toLowerCase()) || post.getTitle().toLowerCase().contains(keyword.toLowerCase()))
+				.map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		return allPostDto;
 	}
 
 }
