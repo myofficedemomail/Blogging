@@ -92,8 +92,7 @@ public class PostServiceImpl implements PostService {
 	public PostDto getPostById(Integer postid) {
 		Post post = postrepo.findById(postid)
 				.orElseThrow(() -> new ResourseNotFoundException("Post", "Id", postid.toString()));
-		PostDto postdto = modelMapper.map(post, PostDto.class);
-		return postdto;
+		return modelMapper.map(post, PostDto.class);
 	}
 
 	@Override
@@ -102,7 +101,7 @@ public class PostServiceImpl implements PostService {
 		User user = userrepo.findById(userid)
 				.orElseThrow(() -> new ResourseNotFoundException("User", "Id", userid.toString()));
 		Page<Post> postPage = postrepo.findAllByUser(user,pageable);
-		List<PostDto> listPostDto =postPage.getContent().stream().map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		List<PostDto> listPostDto =postPage.getContent().stream().map(post->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
 		PostResponse postResponse=new PostResponse();
 		postResponse.setContent(listPostDto);
 		postResponse.setLastPage(postPage.isLast());
@@ -119,7 +118,7 @@ public class PostServiceImpl implements PostService {
 		Category category = categoryrepo.findById(categoryid)
 				.orElseThrow(() -> new ResourseNotFoundException("Category", "Id", categoryid.toString()));
 		Page<Post> postPage = postrepo.findAllByCategory(category,pageable);
-		List<PostDto> listPostDto = postPage.getContent().stream().map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
+		List<PostDto> listPostDto = postPage.getContent().stream().map(post->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
 		PostResponse postResponse=new PostResponse();
 		postResponse.setContent(listPostDto);
 		postResponse.setLastPage(postPage.isLast());
@@ -132,10 +131,9 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public List<PostDto> searchPost(String keyword) {
-		List<PostDto> allPostDto = postrepo.findAll().stream()
-				.filter((post) -> post.getContent().toLowerCase().contains(keyword.toLowerCase()) || post.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-				.map((post)->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
-		return allPostDto;
+		return postrepo.findAll().stream()
+				.filter(post -> post.getContent().toLowerCase().contains(keyword.toLowerCase()) || post.getTitle().toLowerCase().contains(keyword.toLowerCase()))
+				.map(post->modelMapper.map(post, PostDto.class)).collect(Collectors.toList());
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,8 @@ import com.blog.service.UserService;
 public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepo userrepo;
+	@Autowired
+	private ModelMapper modelmapper;
 
 	@Override
 	public UserDto createUser(UserDto userdto){
@@ -36,7 +39,13 @@ public class UserServiceImpl implements UserService {
 	public UserDto updateUser(UserDto userdto, Integer userid) {
 		User user = userrepo.findById(userid)
 				.orElseThrow(() -> new ResourseNotFoundException("User", "Id", userid.toString()));
-		try {
+		user.setAbout(userdto.getAbout());
+		user.setEmail(userdto.getEmail());
+		user.setName(userdto.getName());
+		user.setPassword(userdto.getPassword());
+		userrepo.save(user);
+		userdto = modelmapper.map(user, UserDto.class);
+		/*try {
 			BeanUtils.copyProperties(user, userdto);
 			user.setUserid(userid);
 			User updatedUser = userrepo.save(user);
@@ -44,7 +53,7 @@ public class UserServiceImpl implements UserService {
 			BeanUtils.copyProperties(userdto, updatedUser);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}*/
 		return userdto;
 	}
 
