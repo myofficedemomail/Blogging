@@ -1,5 +1,6 @@
 package com.blog.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class Post {
 	@ManyToOne
 	@JoinColumn(name = "user_fk")
 	private User user;
-	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER,mappedBy = "post")
-	private List<Comment> comment;
+	@OneToMany(cascade = CascadeType.ALL,fetch = FetchType.LAZY,mappedBy = "post")
+	private List<Comment> comment=new ArrayList<Comment>();
 	@ManyToOne
 	@JoinColumn(name = "category_fk")
 	private Category category;

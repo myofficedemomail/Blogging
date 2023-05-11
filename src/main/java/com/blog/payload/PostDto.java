@@ -1,6 +1,7 @@
 package com.blog.payload;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.Data;
 @Data
@@ -12,4 +13,5 @@ public class PostDto {
 	private Date addedDate;
 	private UserDto user;
 	private CategoryDto category;
+	private List<CommentDto> comment;
 }
