@@ -18,7 +18,7 @@ import com.blog.security.JwtAuthResponse;
 import com.blog.security.JwtTokenHelper;
 
 @RestController
-@RequestMapping("/api/v1/auth/")
+@RequestMapping("/api")
 public class AuthController {
 	@Autowired
 	private JwtTokenHelper jwtTokenHelper;
@@ -27,7 +27,7 @@ public class AuthController {
 	@Autowired
 	private AuthenticationManager authenticationManager;
 
-	@PostMapping("login")
+	@PostMapping("/login")
 	public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest jwtAuthRequest) {
 		authenticate(jwtAuthRequest.getUsername(), jwtAuthRequest.getPassword());
 		UserDetails userDetails = userDetailsService.loadUserByUsername(jwtAuthRequest.getUsername());
